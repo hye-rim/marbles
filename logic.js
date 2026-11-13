@@ -55,10 +55,10 @@ const LOGIC_MB = (() => {
     { name: '나선', path: 'spiral', n: 40, colors: 3, speed: 0.17, flag: 0.07 },
     { name: '구불구불', path: 'snake4', n: 36, colors: 4, speed: 0.17, flag: 0.07 },
     { name: '지그재그', path: 'zigzag', n: 36, colors: 4, speed: 0.18, flag: 0.07 },
-    { name: '긴 뱀', path: 'snake3', n: 38, colors: 4, speed: 0.2, flag: 0.07 },
-    { name: '큰 나선', path: 'spiral', n: 70, colors: 5, speed: 0.2, flag: 0.07 },
-    { name: '빽빽한 길', path: 'snake4', n: 44, colors: 5, speed: 0.2, flag: 0.07 },
-    { name: '마지막 길', path: 'zigzag', n: 42, colors: 5, speed: 0.22, flag: 0.07 },
+    { name: '긴 뱀', path: 'snake3', n: 36, colors: 4, speed: 0.17, flag: 0.07 },
+    { name: '큰 나선', path: 'spiral', n: 80, colors: 5, speed: 0.3, flag: 0.07 },
+    { name: '빽빽한 길', path: 'snake4', n: 38, colors: 5, speed: 0.15, flag: 0.07 },
+    { name: '마지막 길', path: 'zigzag', n: 40, colors: 5, speed: 0.17, flag: 0.07 },
   ];
   const pathCache = {};
   function pathOf(name) { if (!pathCache[name]) pathCache[name] = buildPath(PATHS[name].pts, PATHS[name].rad); return pathCache[name]; }
