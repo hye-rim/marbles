@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>구슬 쏘기</title>
+<style>
+  *, *::before, *::after { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#0c1a1a; color:#fff; touch-action:none;
+    font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; }
+  #app { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; padding-top:env(safe-area-inset-top); }
+  #hud { width:100%; max-width:520px; display:flex; align-items:center; gap:10px; padding:8px 12px 4px; font-weight:800; font-size:14px; flex:0 0 auto; }
+  #hud .sp { flex:1; }
+  #hLv { color:#7fe0b8; } #hScore { font-size:20px; color:#ffe27a; font-variant-numeric:tabular-nums; } #hBest { color:#9ab8b0; font-size:12px; font-weight:700; }
+  #pause { width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); color:#fff; font-size:14px; }
+  #stageWrap { flex:1; width:100%; min-height:0; display:flex; align-items:center; justify-content:center; position:relative; }
+  canvas { display:block; touch-action:none; border-radius:14px; box-shadow:0 0 0 2px #1d3a36, 0 8px 24px rgba(0,0,0,.5); }
+  #bar { width:100%; max-width:520px; display:flex; justify-content:center; gap:10px; padding:6px 12px calc(10px + env(safe-area-inset-bottom)); flex:0 0 auto; }
+  #btnSwap { background:linear-gradient(180deg,#2f8f78,#1d5e50); color:#fff; border:none; border-radius:999px; padding:11px 26px; font-size:16px; font-weight:800; box-shadow:0 3px 0 #0b2e26; }
+  #btnSwap:active { transform:translateY(2px); box-shadow:0 1px 0 #0b2e26; }
+  #hint { color:#9ab8b0; font-size:12px; align-self:center; }
+  /* 안내 창 */
+  .ov { position:absolute; inset:0; background:rgba(8,20,20,.94); display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:12px; padding:16px; text-align:center; z-index:5; overflow:auto; }
+  .ov.hidden { display:none; }
+  .ov > :first-child { margin-top:auto; } .ov > :last-child { margin-bottom:auto; }
+  .ov h1 { font-size:34px; font-weight:900; color:#7fe0b8; text-shadow:0 3px 0 #0b4a38, 0 0 18px #3cc89a66; }
+  .ov h2 { font-size:26px; font-weight:900; }
+  .ov p { font-size:14px; line-height:1.6; color:#cfe6df; max-width:340px; }
+  .ov p b { color:#ffe27a; }
+  .big { background:linear-gradient(180deg,#ffe27a,#f0a21a); color:#3a2400; font-weight:900; font-size:18px; border:none; border-radius:999px; padding:13px 34px; box-shadow:0 3px 0 #8a5400; cursor:pointer; }
+  .big:active { transform:translateY(2px); box-shadow:0 1px 0 #8a5400; }
+  .sub { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.28); color:#fff; font-size:14px; font-weight:700; border-radius:999px; padding:9px 18px; cursor:pointer; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  #levels { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; width:100%; max-width:340px; }
+  #levels button { border:none; border-radius:12px; padding:8px 2px 6px; background:#173a34; color:#fff; font-weight:800; font-size:18px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.16); display:flex; flex-direction:column; align-items:center; gap:1px; }
+  #levels button small { font-size:10px; font-weight:600; color:#9ac8bc; }
+  #levels button.cur { box-shadow:inset 0 0 0 2px #ffe27a; }
+  #levels button.done::after { content:'✓'; font-size:11px; color:#7fe0b8; }
+  #levels button:disabled { opacity:.35; }
+  #endScore { font-size:34px; font-weight:900; color:#ffe27a; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud"><span id="hLv">1단계</span><span class="sp"></span><span id="hScore">0</span><span id="hBest">최고 0</span><button id="pause" aria-label="일시정지">⏸</button></div>
+  <div id="stageWrap"><canvas id="c" width="300" height="400"></canvas></div>
+  <div id="bar"><button id="btnSwap">🔁 구슬 바꾸기</button></div>
+</div>
+
+<div class="ov" id="ovStart">
+  <h1>🔮 구슬 쏘기</h1>
+  <p>구슬 줄이 구멍으로 굴러와요! 같은 색 구슬을 쏴서 <b>3개 이상</b> 이어 붙이면 터져요. 줄이 구멍에 닿기 전에 모두 없애요.</p>
+  <button class="big" id="btnStart">시작하기</button>
+  <div id="levelBox"><p style="margin-bottom:8px">단계 고르기</p><div id="levels"></div></div>
+  <p style="font-size:12px;color:#8fb0a8">화면을 누른 채 끌어 겨누고, <b>손을 떼면 발사</b>! 가운데 대포를 누르면 구슬이 바뀌어요.<br>PC: 마우스로 겨누고 클릭, 스페이스 발사, S 바꾸기</p>
+</div>
+<div class="ov hidden" id="ovPause"><h2>일시정지</h2><div class="row"><button class="big" id="btnResume">계속하기</button><button class="sub" id="btnQuit">그만하기</button></div></div>
+<div class="ov hidden" id="ovEnd">
+  <h2 id="endTitle">단계 클리어!</h2>
+  <div id="endScore">0</div>
+  <p id="endText"></p>
+  <div class="row"><button class="big" id="btnNext">다음 단계</button><button class="sub" id="btnMenu">처음 화면</button></div>
+</div>
+<script src="logic.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
