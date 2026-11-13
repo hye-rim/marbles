@@ -5,6 +5,7 @@ const tutorialSignal = (type) => window.dispatchEvent(new CustomEvent('arcade:tu
 // 구슬 쏘기: 화면·입력·소리. 규칙은 logic.js (LOGIC_MB). 여기서는 규칙이 알려 주는 일(events)을 보고 소리·효과를 만든다.
 const L = LOGIC_MB, $ = (id) => document.getElementById(id);
 const TUT = /[?&]tutorial=1(&|$)/.test(location.search);
+if (TUT) document.body.classList.add('tut');
 const cv = $('c'), ctx = cv.getContext('2d');
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
